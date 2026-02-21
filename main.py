@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 load_dotenv() # Cette ligne lit ton fichier .env
 token = os.getenv('DISCORD_TOKEN')
 
+# ✅ Salon autorisé (AH underground)
+ALLOWED_CHANNEL_ID = 1472710945376567360  # <-- remplace par l'ID de ton salon Discord
+
 # Configuration de Matplotlib
 plt.switch_backend('Agg')
 
@@ -100,6 +103,9 @@ def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+def in_allowed_channel(interaction: discord.Interaction) -> bool:
+    return interaction.channel_id == ALLOWED_CHANNEL_ID
+
 @bot.event
 async def on_ready():
     await bot.tree.sync()
@@ -123,7 +129,14 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
-
+    
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+    
     item_key = item.split(" / ")[0].lower()
     data = load_data()
     
