@@ -70,7 +70,7 @@ ITEMS_DATA = [
     {"fr": "Générateur a Endermans", "en": "Enderman Spawner"},
     {"fr": "Générateur a Blaze", "en": "Blaze Spawner"},
     {"fr": "Générateur a Araignées", "en": "Spider Spawner"},
-    {"fr": "Générateur a Sorcieres", "en": "Witch Spawner"},
+    {"fr": "Générateur a Sorcières", "en": "Witch Spawner"},
     {"fr": "Pomme d'Or Enchantée", "en": "Enchanted Golden Apple"},
     {"fr": "Ender Pearl", "en": "Ender Pearl"},
     {"fr": "Débris antiques", "en": "Ancient Debris"},
@@ -89,7 +89,7 @@ ITEMS_DATA = [
     
 ]
 
-ITEMS_AFFICHAGE = [f"{i['fr']} / {i['en']}" for i in ITEMS_DATA]
+ITEMS_AFFICHAGE.sort(key=str.lower)
 
 # --- 2. GESTION DES DONNÉES ---
 intents = discord.Intents.default()
