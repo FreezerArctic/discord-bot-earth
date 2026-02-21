@@ -13,6 +13,7 @@ token = os.getenv('DISCORD_TOKEN')
 
 # ✅ Salon autorisé (AH underground)
 ALLOWED_CHANNEL_ID = 1472710945376567360  # <-- remplace par l'ID de ton salon Discord
+GUILD_ID = 1472710944328126648  # ID du serveur Discord
 
 # Configuration de Matplotlib
 plt.switch_backend('Agg')
@@ -83,7 +84,7 @@ ITEMS_DATA = [
     {"fr": "Bloc de Slime", "en": "Slime Block"},
     {"fr": "Totem d'immortalité", "en": "Totem of Undying"},
     {"fr": "Filet de Capture", "en": "Catch Net"},
-    {"fr": "Canne a Peche Epique", "en": "CEpic Fishing Rod"},
+    {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
 ]
 
 ITEMS_AFFICHAGE = [f"{i['fr']} / {i['en']}" for i in ITEMS_DATA]
@@ -114,8 +115,9 @@ def in_allowed_channel(interaction: discord.Interaction) -> bool:
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
-    print(f'✅ Bot prêt | Historique Global Activé')
+    guild = discord.Object(id=GUILD_ID)
+    await bot.tree.sync(guild=guild)
+    print("✅ Bot prêt | Commands sync (guild)")
 
 async def item_autocomplete(interaction: discord.Interaction, current: str):
     return [
