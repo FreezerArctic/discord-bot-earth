@@ -113,12 +113,19 @@ def is_admin(interaction: discord.Interaction) -> bool:
     return interaction.user.id in ADMIN_USER_IDS
 
 def in_allowed_channel(interaction: discord.Interaction) -> bool:
-    return interaction.channel.id == ALLOWED_CHANNEL_ID
+    ch = interaction.channel
+    if ch is None:
+        return False
+
+    # Si c'est un thread, on regarde le salon parent
+    if hasattr(ch, "parent_id") and ch.parent_id is not None:
+        return ch.parent_id == ALLOWED_CHANNEL_ID
+
+    return ch.id == ALLOWED_CHANNEL_ID
 
 @bot.event
 async def on_ready():
     guild = discord.Object(id=GUILD_ID)
-    bot.tree.copy_global_to(guild=guild)
     await bot.tree.sync(guild=guild)
     print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
 
