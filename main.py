@@ -109,7 +109,7 @@ def is_admin(interaction: discord.Interaction) -> bool:
     return interaction.user.id in ADMIN_USER_IDS
 
 def in_allowed_channel(interaction: discord.Interaction) -> bool:
-    return interaction.channel_id == ALLOWED_CHANNEL_ID
+    return interaction.channel.id == ALLOWED_CHANNEL_ID
 
 @bot.event
 async def on_ready():
