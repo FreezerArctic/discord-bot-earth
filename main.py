@@ -92,6 +92,8 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 DATA_FILE = "marche_v2.json"
 
+ADMIN_USER_IDS = {325986952815968256}  # <-- remplace par TON ID Discord
+
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -102,6 +104,9 @@ def load_data():
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+
+def is_admin(interaction: discord.Interaction) -> bool:
+    return interaction.user.id in ADMIN_USER_IDS
 
 def in_allowed_channel(interaction: discord.Interaction) -> bool:
     return interaction.channel_id == ALLOWED_CHANNEL_ID
@@ -126,15 +131,16 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
     app_commands.Choice(name="Vente 📤", value="vente")
 ])
 async def transaction(interaction: discord.Interaction, type: str, item: str, prix: int, quantite: int = 1):
-    if item not in ITEMS_AFFICHAGE:
-        await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
-        return
-    
+
     if not in_allowed_channel(interaction):
         await interaction.response.send_message(
             "❌ Utilise ces commandes dans le salon dédié.",
             ephemeral=True
         )
+        return
+
+    if item not in ITEMS_AFFICHAGE:
+        await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
     
     item_key = item.split(" / ")[0].lower()
@@ -152,6 +158,7 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     
     # Historique
     nouvelle_entree = {
+        "id": int(datetime.now().timestamp() * 1000),
         "joueur": interaction.user.display_name,
         "item": item,
         "type": "ACHAT" if type == "achat" else "VENTE",
@@ -174,6 +181,13 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
 
 @bot.tree.command(name="historique", description="Voir les 10 dernières activités du marché")
 async def historique(interaction: discord.Interaction):
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+
     data = load_data()
     history = data.get("global_history", [])
 
@@ -193,7 +207,7 @@ async def historique(interaction: discord.Interaction):
         d = entry.get("date", "??/??")
 
         embed.add_field(
-            name=f"{e} {t} : {i}",
+            name=f"#{entry.get('id','?')} • {e} {t} : {i}",
             value=f"**{q}x** pour **{p*q}** 💰 (u: {p})\n*Par {j} le {d}*",
             inline=False
         )
@@ -202,34 +216,48 @@ async def historique(interaction: discord.Interaction):
 
 @bot.tree.command(name="prix", description="Voir les moyennes du marché")
 async def prix(interaction: discord.Interaction, item: str):
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Item invalide.", ephemeral=True)
         return
 
     item_key = item.split(" / ")[0].lower()
     data = load_data()
-    
+
     if item_key in data:
         stats = data[item_key]
         moy_achat = sum(stats["achat"]) / len(stats["achat"]) if stats["achat"] else 0
         moy_vente = sum(stats["vente"]) / len(stats["vente"]) if stats["vente"] else 0
-        
+
         embed = discord.Embed(title=f"📊 Marché : {item}", color=discord.Color.blue())
         embed.add_field(name="📥 Achat Moyen", value=f"**{moy_achat:.2f}** 💰", inline=True)
         embed.add_field(name="📤 Vente Moyenne", value=f"**{moy_vente:.2f}** 💰", inline=True)
         await interaction.response.send_message(embed=embed)
     else:
-        await interaction.response.send_message(f"Aucune donnée pour **{item}**.")
+        await interaction.response.send_message(f"Aucune donnée pour **{item}**.", ephemeral=True)
 
 @bot.tree.command(name="graphique", description="Évolution des prix")
 async def graphique(interaction: discord.Interaction, item: str):
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Item invalide.", ephemeral=True)
         return
 
     item_key = item.split(" / ")[0].lower()
     data = load_data()
-    
+
     ventes = data.get(item_key, {}).get("vente", [])
     achats = data.get(item_key, {}).get("achat", [])
 
@@ -238,8 +266,10 @@ async def graphique(interaction: discord.Interaction, item: str):
         return
 
     plt.figure(figsize=(10, 6))
-    if len(ventes) >= 1: plt.plot(ventes, marker='o', color='#F1C40F', label='Ventes')
-    if len(achats) >= 1: plt.plot(achats, marker='s', color='#3498DB', label='Achats')
+    if len(ventes) >= 1:
+        plt.plot(ventes, marker='o', label='Ventes')
+    if len(achats) >= 1:
+        plt.plot(achats, marker='s', label='Achats')
 
     plt.title(f"Analyse : {item}")
     plt.grid(True, linestyle=':', alpha=0.7)
@@ -255,18 +285,60 @@ async def graphique(interaction: discord.Interaction, item: str):
 
 @bot.tree.command(name="clear_item", description="Réinitialiser un item")
 async def clear_item(interaction: discord.Interaction, item: str):
-    if item not in ITEMS_AFFICHAGE: 
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+
+    if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Item invalide.", ephemeral=True)
         return
-    
+
+    if not is_admin(interaction):
+        await interaction.response.send_message("❌ Commande réservée aux admins.", ephemeral=True)
+        return
+
     item_key = item.split(" / ")[0].lower()
     data = load_data()
+
     if item_key in data:
         del data[item_key]
         save_data(data)
-        await interaction.response.send_message(f"✅ Données de **{item}** effacées.")
+        await interaction.response.send_message(f"✅ Données de **{item}** effacées.", ephemeral=True)
     else:
-        await interaction.response.send_message("⚠️ Aucune donnée à effacer.")
+        await interaction.response.send_message("⚠️ Aucune donnée à effacer.", ephemeral=True)
+
+@bot.tree.command(name="delete_transaction", description="Supprimer une transaction par ID")
+@app_commands.describe(id="ID visible dans /historique")
+async def delete_transaction(interaction: discord.Interaction, id: int):
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message(
+            "❌ Utilise ces commandes dans le salon dédié.",
+            ephemeral=True
+        )
+        return
+
+    if not is_admin(interaction):
+        await interaction.response.send_message("❌ Commande réservée aux admins.", ephemeral=True)
+        return
+
+    data = load_data()
+    history = data.get("global_history", [])
+    if not history:
+        await interaction.response.send_message("📜 Historique vide.", ephemeral=True)
+        return
+
+    entry = next((e for e in history if e.get("id") == id), None)
+    if not entry:
+        await interaction.response.send_message("❌ ID introuvable.", ephemeral=True)
+        return
+
+    data["global_history"] = [e for e in history if e.get("id") != id]
+    save_data(data)
+
+    await interaction.response.send_message(f"✅ Transaction #{id} supprimée (historique).", ephemeral=True)
 
 # Autocomplétion
 @transaction.autocomplete('item')
@@ -276,5 +348,7 @@ async def clear_item(interaction: discord.Interaction, item: str):
 async def auto_all(interaction, current):
     return await item_autocomplete(interaction, current)
 
-token = os.getenv('DISCORD_TOKEN') # On crée la variable 'token' ici !
+if not token:
+    raise RuntimeError("DISCORD_TOKEN manquant dans .env")
+
 bot.run(token)
