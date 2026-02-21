@@ -70,6 +70,7 @@ ITEMS_DATA = [
     {"fr": "Générateur a Endermans", "en": "Enderman Spawner"},
     {"fr": "Générateur a Blaze", "en": "Blaze Spawner"},
     {"fr": "Générateur a Araignées", "en": "Spider Spawner"},
+    {"fr": "Générateur a Sorcieres", "en": "Witch Spawner"},
     {"fr": "Pomme d'Or Enchantée", "en": "Enchanted Golden Apple"},
     {"fr": "Ender Pearl", "en": "Ender Pearl"},
     {"fr": "Débris antiques", "en": "Ancient Debris"},
@@ -85,6 +86,7 @@ ITEMS_DATA = [
     {"fr": "Totem d'immortalité", "en": "Totem of Undying"},
     {"fr": "Filet de Capture", "en": "Catch Net"},
     {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
+    
 ]
 
 ITEMS_AFFICHAGE = [f"{i['fr']} / {i['en']}" for i in ITEMS_DATA]
