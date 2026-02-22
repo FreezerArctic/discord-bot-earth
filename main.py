@@ -40,6 +40,7 @@ ITEMS_DATA = [
     {"fr": "Multitool", "en": "Multitool"},
     {"fr": "Pioche spawner légendaire", "en": "Legendary Spawner Pickaxe"},
     {"fr": "Clé Légendaire", "en": "Legendary Key"},
+    {"fr": "Clé Spawner", "en": "Spawner Key"},
     {"fr": "Casque Epique", "en": "Epic Helmet"},
     {"fr": "Platron Epique", "en": "Epic Chestplate"},
     {"fr": "Jambieres Epique", "en": "Epic Leggings"},
