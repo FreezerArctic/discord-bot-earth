@@ -18,4 +18,4 @@ jobs:
             cd /root/discord-bot-earth
             git pull
             /root/discord-bot-earth/venv/bin/pip install -r requirements.txt
-            sudo systemctl restart discordbot
+            sudo systemctl restart discordbot.service
