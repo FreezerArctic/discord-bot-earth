@@ -12,8 +12,8 @@ load_dotenv() # Cette ligne lit ton fichier .env
 token = os.getenv('DISCORD_TOKEN')
 
 # ✅ Salon autorisé (AH underground)
-ALLOWED_CHANNEL_ID = 1472710945376567360  # <-- remplace par l'ID de ton salon Discord
-GUILD_ID = 1472710944328126648  # ID du serveur Discord
+ALLOWED_CHANNEL_ID = 1472710945376567360
+GUILD_ID = 1472710944328126648
 
 # Configuration de Matplotlib
 plt.switch_backend('Agg')
@@ -86,18 +86,70 @@ ITEMS_DATA = [
     {"fr": "Totem d'immortalité", "en": "Totem of Undying"},
     {"fr": "Filet de Capture", "en": "Catch Net"},
     {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
-    
 ]
 
 ITEMS_AFFICHAGE = [f"{item['fr']} / {item['en']}" for item in ITEMS_DATA]
 ITEMS_AFFICHAGE.sort(key=str.lower)
+
+# --- PAGINATION HISTORIQUE ---
+class HistoriqueView(discord.ui.View):
+    def __init__(self, history, page=0):
+        super().__init__(timeout=60)
+        self.history = history
+        self.page = page
+        self.per_page = 10
+        self.max_page = (len(history) - 1) // self.per_page
+        self.update_buttons()
+
+    def update_buttons(self):
+        self.prev_button.disabled = self.page == 0
+        self.next_button.disabled = self.page >= self.max_page
+
+    def get_embed(self):
+        start = self.page * self.per_page
+        end = start + self.per_page
+        entries = self.history[start:end]
+
+        embed = discord.Embed(
+            title=f"📜 Historique Global — Page {self.page + 1}/{self.max_page + 1}",
+            color=discord.Color.blue()
+        )
+
+        for entry in entries:
+            e = entry.get("emoji", "💰")
+            t = entry.get("type", "TRANS.")
+            i = entry.get("item", "Inconnu")
+            q = entry.get("quantite", 1)
+            p = entry.get("prix", 0)
+            j = entry.get("joueur", "Anonyme")
+            d = entry.get("date", "??/??")
+
+            embed.add_field(
+                name=f"#{entry.get('id','?')} • {e} {t} : {i}",
+                value=f"**{q}x** pour **{p*q}** 💰 (u: {p})\n*Par {j} le {d}*",
+                inline=False
+            )
+
+        return embed
+
+    @discord.ui.button(label="⬅️ Précédent", style=discord.ButtonStyle.secondary)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="Suivant ➡️", style=discord.ButtonStyle.secondary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
 # --- 2. GESTION DES DONNÉES ---
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 DATA_FILE = "marche_v2.json"
 
-ADMIN_USER_IDS = {325986952815968256}  # <-- remplace par TON ID Discord
+ADMIN_USER_IDS = {325986952815968256}
 
 def load_data():
     if os.path.exists(DATA_FILE):
@@ -139,30 +191,25 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
 async def transaction(interaction: discord.Interaction, type: str, item: str, prix: int, quantite: int = 1):
 
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
-    
+
     item_key = item.split(" / ")[0].lower()
     data = load_data()
-    
+
     if item_key not in data:
         data[item_key] = {"achat": [], "vente": []}
-    
+
     if "global_history" not in data:
         data["global_history"] = []
 
-    # Moyennes
     for _ in range(quantite):
         data[item_key][type].append(prix)
-    
-    # Historique
+
     nouvelle_entree = {
         "id": int(datetime.now().timestamp() * 1000),
         "joueur": interaction.user.display_name,
@@ -174,10 +221,10 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
         "date": datetime.now().strftime("%d/%m %H:%M")
     }
     data["global_history"].insert(0, nouvelle_entree)
-    data["global_history"] = data["global_history"][:10]
+    data["global_history"] = data["global_history"][:50]  # ✅ Limite augmentée à 50
 
     save_data(data)
-    
+
     prix_total = prix * quantite
     embed = discord.Embed(title="Transaction Enregistrée", color=discord.Color.green() if type == "achat" else discord.Color.gold())
     embed.add_field(name="Item", value=item, inline=False)
@@ -185,13 +232,10 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     embed.add_field(name="Total", value=f"**{prix_total}** 💰", inline=True)
     await interaction.response.send_message(embed=embed)
 
-@bot.tree.command(name="historique", description="Voir les 10 dernières activités du marché")
+@bot.tree.command(name="historique", description="Voir les dernières activités du marché")
 async def historique(interaction: discord.Interaction):
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     data = load_data()
@@ -201,32 +245,13 @@ async def historique(interaction: discord.Interaction):
         await interaction.response.send_message("📜 L'historique est vide.", ephemeral=True)
         return
 
-    embed = discord.Embed(title="📜 Historique Global", color=discord.Color.blue())
-
-    for entry in history:
-        e = entry.get("emoji", "💰")
-        t = entry.get("type", "TRANS.")
-        i = entry.get("item", "Inconnu")
-        q = entry.get("quantite", 1)
-        p = entry.get("prix", 0)
-        j = entry.get("joueur", "Anonyme")
-        d = entry.get("date", "??/??")
-
-        embed.add_field(
-            name=f"#{entry.get('id','?')} • {e} {t} : {i}",
-            value=f"**{q}x** pour **{p*q}** 💰 (u: {p})\n*Par {j} le {d}*",
-            inline=False
-        )
-
-    await interaction.response.send_message(embed=embed)
+    view = HistoriqueView(history)
+    await interaction.response.send_message(embed=view.get_embed(), view=view)
 
 @bot.tree.command(name="prix", description="Voir les moyennes du marché")
 async def prix(interaction: discord.Interaction, item: str):
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     if item not in ITEMS_AFFICHAGE:
@@ -251,10 +276,7 @@ async def prix(interaction: discord.Interaction, item: str):
 @bot.tree.command(name="graphique", description="Évolution des prix")
 async def graphique(interaction: discord.Interaction, item: str):
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     if item not in ITEMS_AFFICHAGE:
@@ -292,10 +314,7 @@ async def graphique(interaction: discord.Interaction, item: str):
 @bot.tree.command(name="clear_item", description="Réinitialiser un item")
 async def clear_item(interaction: discord.Interaction, item: str):
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     if item not in ITEMS_AFFICHAGE:
@@ -320,10 +339,7 @@ async def clear_item(interaction: discord.Interaction, item: str):
 @app_commands.describe(id="ID visible dans /historique")
 async def delete_transaction(interaction: discord.Interaction, id: int):
     if not in_allowed_channel(interaction):
-        await interaction.response.send_message(
-            "❌ Utilise ces commandes dans le salon dédié.",
-            ephemeral=True
-        )
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
 
     if not is_admin(interaction):
