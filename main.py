@@ -171,6 +171,7 @@ def in_allowed_channel(interaction: discord.Interaction) -> bool:
 @bot.event
 async def on_ready():
     guild = discord.Object(id=GUILD_ID)
+    bot.tree.copy_global_to(guild=guild)
     await bot.tree.sync(guild=guild)
     print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
 
