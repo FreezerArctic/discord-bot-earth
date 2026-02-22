@@ -113,12 +113,8 @@ def save_data(data):
 def is_admin(interaction: discord.Interaction) -> bool:
     return interaction.user.id in ADMIN_USER_IDS
 
-@bot.event
-async def on_ready():
-    guild = discord.Object(id=GUILD_ID)
-    bot.tree.copy_global_to(guild=guild)
-    await bot.tree.sync(guild=guild)
-    print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
+def in_allowed_channel(interaction: discord.Interaction) -> bool:
+    return interaction.channel_id == ALLOWED_CHANNEL_ID
 
 @bot.event
 async def on_ready():
