@@ -362,6 +362,41 @@ async def delete_transaction(interaction: discord.Interaction, id: int):
 
     await interaction.response.send_message(f"✅ Transaction #{id} supprimée (historique).", ephemeral=True)
 
+@bot.tree.command(name="stats", description="Classement des items les plus échangés")
+async def stats(interaction: discord.Interaction):
+    if not in_allowed_channel(interaction):
+        await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
+        return
+
+    data = load_data()
+    items_stats = []
+
+    for key, value in data.items():
+        if key == "global_history":
+            continue
+        nb_achats = len(value.get("achat", []))
+        nb_ventes = len(value.get("vente", []))
+        total = nb_achats + nb_ventes
+        if total > 0:
+            items_stats.append((key, nb_achats, nb_ventes, total))
+
+    if not items_stats:
+        await interaction.response.send_message("📊 Aucune donnée disponible.", ephemeral=True)
+        return
+
+    items_stats.sort(key=lambda x: x[3], reverse=True)
+
+    embed = discord.Embed(title="📊 Top des items les plus échangés", color=discord.Color.gold())
+
+    for i, (key, achats, ventes, total) in enumerate(items_stats[:10], 1):
+        embed.add_field(
+            name=f"#{i} — {key.capitalize()}",
+            value=f"📥 Achats: **{achats}** | 📤 Ventes: **{ventes}** | Total: **{total}**",
+            inline=False
+        )
+
+    await interaction.response.send_message(embed=embed)
+    
 # Autocomplétion
 @transaction.autocomplete('item')
 @prix.autocomplete('item')
