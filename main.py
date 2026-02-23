@@ -64,7 +64,6 @@ ITEMS_DATA = [
     {"fr": "Générateur a Hoglins", "en": "Hoglin Spawner"},
     {"fr": "Générateur a Piglins", "en": "Piglin Spawner"},
     {"fr": "Générateur a Piglins-Zombifiés", "en": "Zombified Piglin Spawner"},
-    {"fr": "Générateur a Moutons", "en": "Sheep Spawner"},
     {"fr": "Générateur a Magma Cube", "en": "Magma Cube Spawner"},
     {"fr": "Générateur a Guardians", "en": "Guardian Spawner"},
     {"fr": "Générateur a Slimes", "en": "Slime Spawner"},
