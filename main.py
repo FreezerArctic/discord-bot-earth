@@ -73,6 +73,7 @@ ITEMS_DATA = [
     {"fr": "Générateur a Blaze", "en": "Blaze Spawner"},
     {"fr": "Générateur a Araignées", "en": "Spider Spawner"},
     {"fr": "Générateur a Sorcières", "en": "Witch Spawner"},
+    {"fr": "Générateur a Moutons", "en": "Sheep Spawner"},
     {"fr": "Pomme d'Or Enchantée", "en": "Enchanted Golden Apple"},
     {"fr": "Ender Pearl", "en": "Ender Pearl"},
     {"fr": "Débris antiques", "en": "Ancient Debris"},
