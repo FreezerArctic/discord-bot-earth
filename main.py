@@ -88,6 +88,7 @@ ITEMS_DATA = [
     {"fr": "Totem d'immortalité", "en": "Totem of Undying"},
     {"fr": "Filet de Capture", "en": "Catch Net"},
     {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
+    {"fr": "Jambieres legendaires", "en": "Legendary Legging"},
 ]
 
 ITEMS_AFFICHAGE = [f"{item['fr']} / {item['en']}" for item in ITEMS_DATA]
