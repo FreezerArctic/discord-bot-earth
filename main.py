@@ -36,7 +36,7 @@ ITEMS_DATA = [
     {"fr": "Pantalon légendaire", "en": "Legendary Leggings"},
     {"fr": "Bottes légendaires", "en": "Legendary Boots"},
     {"fr": "Brise-Roche", "en": "Rock-Breaker"},
-    {"fr": "Baton de vente légendaire", "en": "Legendary Sell Stick"},
+    {"fr": "Baton de vente légendaire (x3)", "en": "Legendary Sell Stick"},
     {"fr": "Multitool", "en": "Multitool"},
     {"fr": "Pioche spawner légendaire", "en": "Legendary Spawner Pickaxe"},
     {"fr": "Clé Légendaire", "en": "Legendary Key"},
@@ -49,7 +49,7 @@ ITEMS_DATA = [
     {"fr": "Pioche 3x3", "en": "3x3 Pickaxe"},
     {"fr": "Pioche de Feu", "en": "Fire Pickaxe"},
     {"fr": "Pioche Spawner Epique", "en": "Epic Spawner Pickaxe"},
-    {"fr": "Baton de vente Epique", "en": "Epic Sell Stick"},
+    {"fr": "Baton de vente Epique (x2)", "en": "Epic Sell Stick"},
     {"fr": "Foudroyeuse", "en": "Lightning Striker"},
     {"fr": "Houe 3x3 Epique", "en": "Epic 3x3 Hoe"},
     {"fr": "Houe 3x3 légendaire", "en": "Legendary 3x3 Hoe"},
@@ -89,6 +89,12 @@ ITEMS_DATA = [
     {"fr": "Filet de Capture", "en": "Catch Net"},
     {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
     {"fr": "Jambieres legendaires", "en": "Legendary Legging"},
+    {"fr": "Plastron Epique", "en": "Epic Chestplate"},
+    {"fr": "Pioche 5x5", "en": "5x5 Pickaxe"},
+    {"fr": "Houe 3x3 Rare", "en": "Houe 3x3 Rare"},
+    {"fr": "Semoir ", "en": "Seeder"},
+    {"fr": "Baton de vente Commun(x1.5)", "en": "Common sell Stick (x1.5)"},
+    {"fr": "Shulker de feux d'artifice", "en": "Fireworks Shulker Box"},
 ]
 
 ITEMS_AFFICHAGE = [f"{item['fr']} / {item['en']}" for item in ITEMS_DATA]
