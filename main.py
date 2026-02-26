@@ -220,11 +220,11 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
         await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
     
-prix_parsed = parse_prix(prix)
-    if prix_parsed is None:
-        await interaction.response.send_message("❌ Prix invalide ! Exemples : `500`, `2K`, `1.5M`", ephemeral=True)
-        return
-    prix = prix_parsed
+    prix_parsed = parse_prix(prix)
+        if prix_parsed is None:
+            await interaction.response.send_message("❌ Prix invalide ! Exemples : `500`, `2K`, `1.5M`", ephemeral=True)
+            return
+        prix = prix_parsed
 
     item_key = item.split(" / ")[0].lower()
     data = load_data()
