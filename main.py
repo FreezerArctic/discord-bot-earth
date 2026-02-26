@@ -190,6 +190,18 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
         for choice in ITEMS_AFFICHAGE if current.lower() in choice.lower()
     ][:25]
 
+def parse_prix(valeur: str) -> int | None:
+    valeur = valeur.strip().replace(",", ".").upper()
+    try:
+        if valeur.endswith("M"):
+            return int(float(valeur[:-1]) * 1_000_000)
+        elif valeur.endswith("K"):
+            return int(float(valeur[:-1]) * 1_000)
+        else:
+            return int(float(valeur))
+    except:
+        return None
+
 # --- 3. COMMANDES ---
 
 @bot.tree.command(name="transaction", description="Enregistrer un achat ou une vente")
@@ -198,7 +210,7 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
     app_commands.Choice(name="Achat 📥", value="achat"),
     app_commands.Choice(name="Vente 📤", value="vente")
 ])
-async def transaction(interaction: discord.Interaction, type: str, item: str, prix: int, quantite: int = 1):
+async def transaction(interaction: discord.Interaction, type: str, item: str, prix: str, quantite: int = 1):
 
     if not in_allowed_channel(interaction):
         await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
@@ -207,6 +219,12 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
+    
+prix_parsed = parse_prix(prix)
+    if prix_parsed is None:
+        await interaction.response.send_message("❌ Prix invalide ! Exemples : `500`, `2K`, `1.5M`", ephemeral=True)
+        return
+    prix = prix_parsed
 
     item_key = item.split(" / ")[0].lower()
     data = load_data()
