@@ -8,14 +8,12 @@ import io
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv() # Cette ligne lit ton fichier .env
+load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
-# ✅ Salon autorisé (AH underground)
 ALLOWED_CHANNEL_ID = 1472710945376567360
 GUILD_ID = 1472710944328126648
 
-# Configuration de Matplotlib
 plt.switch_backend('Agg')
 
 # --- 1. CONFIGURATION DES ITEMS BILINGUES ---
@@ -92,7 +90,7 @@ ITEMS_DATA = [
     {"fr": "Plastron Epique", "en": "Epic Chestplate"},
     {"fr": "Pioche 5x5", "en": "5x5 Pickaxe"},
     {"fr": "Houe 3x3 Rare", "en": "Houe 3x3 Rare"},
-    {"fr": "Semoir ", "en": "Seeder"},
+    {"fr": "Semoir", "en": "Seeder"},
     {"fr": "Baton de vente Commun(x1.5)", "en": "Common sell Stick (x1.5)"},
     {"fr": "Shulker de feux d'artifice", "en": "Fireworks Shulker Box"},
 ]
@@ -163,8 +161,10 @@ ADMIN_USER_IDS = {325986952815968256}
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
-            try: return json.load(f)
-            except: return {}
+            try:
+                return json.load(f)
+            except:
+                return {}
     return {}
 
 def save_data(data):
@@ -176,6 +176,18 @@ def is_admin(interaction: discord.Interaction) -> bool:
 
 def in_allowed_channel(interaction: discord.Interaction) -> bool:
     return interaction.channel_id == ALLOWED_CHANNEL_ID
+
+def parse_prix(valeur: str) -> int | None:
+    valeur = valeur.strip().replace(",", ".").upper()
+    try:
+        if valeur.endswith("M"):
+            return int(float(valeur[:-1]) * 1_000_000)
+        elif valeur.endswith("K"):
+            return int(float(valeur[:-1]) * 1_000)
+        else:
+            return int(float(valeur))
+    except:
+        return None
 
 @bot.event
 async def on_ready():
@@ -190,22 +202,10 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
         for choice in ITEMS_AFFICHAGE if current.lower() in choice.lower()
     ][:25]
 
-def parse_prix(valeur: str) -> int | None:
-    valeur = valeur.strip().replace(",", ".").upper()
-    try:
-        if valeur.endswith("M"):
-            return int(float(valeur[:-1]) * 1_000_000)
-        elif valeur.endswith("K"):
-            return int(float(valeur[:-1]) * 1_000)
-        else:
-            return int(float(valeur))
-    except:
-        return None
-
 # --- 3. COMMANDES ---
 
 @bot.tree.command(name="transaction", description="Enregistrer un achat ou une vente")
-@app_commands.describe(type="Achat ou Vente", item="L'objet", prix="Prix unité", quantite="Nombre")
+@app_commands.describe(type="Achat ou Vente", item="L'objet", prix="Prix unité (ex: 500, 2K, 1.5M)", quantite="Nombre")
 @app_commands.choices(type=[
     app_commands.Choice(name="Achat 📥", value="achat"),
     app_commands.Choice(name="Vente 📤", value="vente")
@@ -219,12 +219,12 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     if item not in ITEMS_AFFICHAGE:
         await interaction.response.send_message("❌ Utilise la liste !", ephemeral=True)
         return
-    
+
     prix_parsed = parse_prix(prix)
-        if prix_parsed is None:
-            await interaction.response.send_message("❌ Prix invalide ! Exemples : `500`, `2K`, `1.5M`", ephemeral=True)
-            return
-        prix = prix_parsed
+    if prix_parsed is None:
+        await interaction.response.send_message("❌ Prix invalide ! Exemples : `500`, `2K`, `1.5M`", ephemeral=True)
+        return
+    prix = prix_parsed
 
     item_key = item.split(" / ")[0].lower()
     data = load_data()
@@ -249,7 +249,7 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
         "date": datetime.now().strftime("%d/%m %H:%M")
     }
     data["global_history"].insert(0, nouvelle_entree)
-    data["global_history"] = data["global_history"][:50]  # ✅ Limite augmentée à 50
+    data["global_history"] = data["global_history"][:50]
 
     save_data(data)
 
@@ -257,7 +257,7 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
     embed = discord.Embed(title="Transaction Enregistrée", color=discord.Color.green() if type == "achat" else discord.Color.gold())
     embed.add_field(name="Item", value=item, inline=False)
     embed.add_field(name="Quantité", value=f"x{quantite}", inline=True)
-    embed.add_field(name="Total", value=f"**{prix_total}** 💰", inline=True)
+    embed.add_field(name="Total", value=f"**{prix_total:,}** 💰", inline=True)
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="historique", description="Voir les dernières activités du marché")
@@ -295,8 +295,8 @@ async def prix(interaction: discord.Interaction, item: str):
         moy_vente = sum(stats["vente"]) / len(stats["vente"]) if stats["vente"] else 0
 
         embed = discord.Embed(title=f"📊 Marché : {item}", color=discord.Color.blue())
-        embed.add_field(name="📥 Achat Moyen", value=f"**{moy_achat:.2f}** 💰", inline=True)
-        embed.add_field(name="📤 Vente Moyenne", value=f"**{moy_vente:.2f}** 💰", inline=True)
+        embed.add_field(name="📥 Achat Moyen", value=f"**{moy_achat:,.2f}** 💰", inline=True)
+        embed.add_field(name="📤 Vente Moyenne", value=f"**{moy_vente:,.2f}** 💰", inline=True)
         await interaction.response.send_message(embed=embed)
     else:
         await interaction.response.send_message(f"Aucune donnée pour **{item}**.", ephemeral=True)
@@ -339,7 +339,7 @@ async def graphique(interaction: discord.Interaction, item: str):
     file = discord.File(buf, filename="graph.png")
     await interaction.response.send_message(file=file)
 
-@bot.tree.command(name="clear_item", description="Réinitialiser un item")
+@bot.tree.command(name="clear_item", description="Réinitialiser un item (admin)")
 async def clear_item(interaction: discord.Interaction, item: str):
     if not in_allowed_channel(interaction):
         await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
@@ -363,7 +363,7 @@ async def clear_item(interaction: discord.Interaction, item: str):
     else:
         await interaction.response.send_message("⚠️ Aucune donnée à effacer.", ephemeral=True)
 
-@bot.tree.command(name="delete_transaction", description="Supprimer une transaction par ID")
+@bot.tree.command(name="delete_transaction", description="Supprimer une transaction par ID (admin)")
 @app_commands.describe(id="ID visible dans /historique")
 async def delete_transaction(interaction: discord.Interaction, id: int):
     if not in_allowed_channel(interaction):
@@ -388,7 +388,7 @@ async def delete_transaction(interaction: discord.Interaction, id: int):
     data["global_history"] = [e for e in history if e.get("id") != id]
     save_data(data)
 
-    await interaction.response.send_message(f"✅ Transaction #{id} supprimée (historique).", ephemeral=True)
+    await interaction.response.send_message(f"✅ Transaction #{id} supprimée.", ephemeral=True)
 
 @bot.tree.command(name="stats", description="Classement des items les plus échangés")
 async def stats(interaction: discord.Interaction):
@@ -424,7 +424,7 @@ async def stats(interaction: discord.Interaction):
         )
 
     await interaction.response.send_message(embed=embed)
-    
+
 # Autocomplétion
 @transaction.autocomplete('item')
 @prix.autocomplete('item')
