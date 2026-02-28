@@ -194,6 +194,7 @@ async def on_ready():
     guild = discord.Object(id=GUILD_ID)
     bot.tree.copy_global_to(guild=guild)
     await bot.tree.sync(guild=guild)
+    await bot.tree.sync()  # sync globale
     print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
 
 async def item_autocomplete(interaction: discord.Interaction, current: str):
