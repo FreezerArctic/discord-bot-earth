@@ -192,9 +192,10 @@ def parse_prix(valeur: str) -> int | None:
 @bot.event
 async def on_ready():
     guild = discord.Object(id=GUILD_ID)
+    bot.tree.copy_global_to(guild=guild)
     await bot.tree.sync(guild=guild)
-    print("✅ Sync guild done")
-
+    print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
+    
 async def item_autocomplete(interaction: discord.Interaction, current: str):
     return [
         app_commands.Choice(name=choice, value=choice)
@@ -204,13 +205,23 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
 # --- 3. COMMANDES ---
 
 @bot.tree.command(name="transaction", description="Enregistrer un achat ou une vente")
-@app_commands.describe(type="Achat ou Vente", item="L'objet", prix="Prix unité (ex: 500, 2K, 1.5M)", quantite="Nombre")
-@app_commands.choices(type=[
+@app_commands.describe(
+    action="Achat ou Vente",
+    item="L'objet",
+    prix="Prix unité (ex: 500, 2K, 1.5M)",
+    quantite="Nombre"
+)
+@app_commands.choices(action=[
     app_commands.Choice(name="Achat 📥", value="achat"),
-    app_commands.Choice(name="Vente 📤", value="vente")
+    app_commands.Choice(name="Vente 📤", value="vente"),
 ])
-async def transaction(interaction: discord.Interaction, type: str, item: str, prix: str, quantite: int = 1):
-
+async def transaction(
+    interaction: discord.Interaction,
+    action: str,
+    item: str,
+    prix: str,
+    quantite: int = 1
+):
     if not in_allowed_channel(interaction):
         await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
@@ -230,30 +241,32 @@ async def transaction(interaction: discord.Interaction, type: str, item: str, pr
 
     if item_key not in data:
         data[item_key] = {"achat": [], "vente": []}
-
     if "global_history" not in data:
         data["global_history"] = []
 
     for _ in range(quantite):
-        data[item_key][type].append(prix)
+        data[item_key][action].append(prix)
 
     nouvelle_entree = {
         "id": int(datetime.now().timestamp() * 1000),
         "joueur": interaction.user.display_name,
         "item": item,
-        "type": "ACHAT" if type == "achat" else "VENTE",
-        "emoji": "📥" if type == "achat" else "📤",
+        "type": "ACHAT" if action == "achat" else "VENTE",
+        "emoji": "📥" if action == "achat" else "📤",
         "prix": prix,
         "quantite": quantite,
         "date": datetime.now().strftime("%d/%m %H:%M")
     }
+
     data["global_history"].insert(0, nouvelle_entree)
     data["global_history"] = data["global_history"][:50]
-
     save_data(data)
 
     prix_total = prix * quantite
-    embed = discord.Embed(title="Transaction Enregistrée", color=discord.Color.green() if type == "achat" else discord.Color.gold())
+    embed = discord.Embed(
+        title="Transaction Enregistrée",
+        color=discord.Color.green() if action == "achat" else discord.Color.gold()
+    )
     embed.add_field(name="Item", value=item, inline=False)
     embed.add_field(name="Quantité", value=f"x{quantite}", inline=True)
     embed.add_field(name="Total", value=f"**{prix_total:,}** 💰", inline=True)
