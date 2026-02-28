@@ -366,7 +366,13 @@ async def clear_item(interaction: discord.Interaction, item: str):
 
 @bot.tree.command(name="delete_transaction", description="Supprimer une transaction par ID (admin)")
 @app_commands.describe(id="ID visible dans /historique")
-async def delete_transaction(interaction: discord.Interaction, id: int):
+async def delete_transaction(interaction: discord.Interaction, id: str):
+    try:
+        id = int(id)
+    except:
+        await interaction.response.send_message("❌ ID invalide (mets seulement le nombre).", ephemeral=True)
+        return
+
     if not in_allowed_channel(interaction):
         await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
         return
