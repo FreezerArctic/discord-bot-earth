@@ -211,7 +211,7 @@ async def item_autocomplete(interaction: discord.Interaction, current: str):
     app_commands.Choice(name="Achat 📥", value="achat"),
     app_commands.Choice(name="Vente 📤", value="vente")
 ])
-async def transaction(interaction: discord.Interaction, type: str, item: str, prix: str, quantite: str = 1):
+async def transaction(interaction: discord.Interaction, type: str, item: str, prix: str, quantite: int = 1):
 
     if not in_allowed_channel(interaction):
         await interaction.response.send_message("❌ Utilise ces commandes dans le salon dédié.", ephemeral=True)
