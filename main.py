@@ -53,6 +53,7 @@ ITEMS_DATA = [
     {"fr": "Houe 3x3 légendaire", "en": "Legendary 3x3 Hoe"},
     {"fr": "Générateur a Golem de Fer", "en": "Iron Golem Spawner"},
     {"fr": "Générateur a Wither Squelette", "en": "Wither Skeleton Spawner"},
+    {"fr": "Générateur a Squelette", "en": " Skeleton Spawner"},
     {"fr": "Générateur a Poulpe Lumineux", "en": "Glow Squid Spawner"},
     {"fr": "Générateur a Poules", "en": "Chicken Spawner"},
     {"fr": "Générateur a Cochons", "en": "Pig Spawner"},
