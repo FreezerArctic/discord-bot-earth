@@ -94,6 +94,7 @@ ITEMS_DATA = [
     {"fr": "Semoir", "en": "Seeder"},
     {"fr": "Baton de vente Commun(x1.5)", "en": "Common sell Stick (x1.5)"},
     {"fr": "Shulker de feux d'artifice", "en": "Fireworks Shulker Box"},
+    {"fr": "Générateur a Noyes", "en": "Drowned Spawner"},
 ]
 
 ITEMS_AFFICHAGE = [f"{item['fr']} / {item['en']}" for item in ITEMS_DATA]
