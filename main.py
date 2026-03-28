@@ -53,7 +53,8 @@ ITEMS_DATA = [
     {"fr": "Houe 3x3 légendaire", "en": "Legendary 3x3 Hoe"},
     {"fr": "Générateur a Golem de Fer", "en": "Iron Golem Spawner"},
     {"fr": "Générateur a Wither Squelette", "en": "Wither Skeleton Spawner"},
-    {"fr": "Générateur a Squelette", "en": " Skeleton Spawner"},
+    {"fr": "Générateur a Squelette", "en": "Skeleton Spawner"},
+    {"fr": "Générateur a Squelettes", "en": "Skeleton Spawner (x2)"},
     {"fr": "Générateur a Poulpe Lumineux", "en": "Glow Squid Spawner"},
     {"fr": "Générateur a Poules", "en": "Chicken Spawner"},
     {"fr": "Générateur a Cochons", "en": "Pig Spawner"},
@@ -72,6 +73,7 @@ ITEMS_DATA = [
     {"fr": "Générateur a Araignées", "en": "Spider Spawner"},
     {"fr": "Générateur a Sorcières", "en": "Witch Spawner"},
     {"fr": "Générateur a Moutons", "en": "Sheep Spawner"},
+    {"fr": "Générateur a Noyes", "en": "Drowned Spawner"},
     {"fr": "Pomme d'Or Enchantée", "en": "Enchanted Golden Apple"},
     {"fr": "Ender Pearl", "en": "Ender Pearl"},
     {"fr": "Débris antiques", "en": "Ancient Debris"},
@@ -87,14 +89,12 @@ ITEMS_DATA = [
     {"fr": "Totem d'immortalité", "en": "Totem of Undying"},
     {"fr": "Filet de Capture", "en": "Catch Net"},
     {"fr": "Canne a Peche Epique", "en": "Epic Fishing Rod"},
-    {"fr": "Jambieres legendaires", "en": "Legendary Legging"},
-    {"fr": "Plastron Epique", "en": "Epic Chestplate"},
+    {"fr": "Jambieres legendaires", "en": "Legendary Leggings"},
     {"fr": "Pioche 5x5", "en": "5x5 Pickaxe"},
-    {"fr": "Houe 3x3 Rare", "en": "Houe 3x3 Rare"},
+    {"fr": "Houe 3x3 Rare", "en": "Rare 3x3 Hoe"},
     {"fr": "Semoir", "en": "Seeder"},
-    {"fr": "Baton de vente Commun(x1.5)", "en": "Common sell Stick (x1.5)"},
+    {"fr": "Baton de vente Commun(x1.5)", "en": "Common Sell Stick (x1.5)"},
     {"fr": "Shulker de feux d'artifice", "en": "Fireworks Shulker Box"},
-    {"fr": "Générateur a Noyes", "en": "Drowned Spawner"},
 ]
 
 ITEMS_AFFICHAGE = [f"{item['fr']} / {item['en']}" for item in ITEMS_DATA]
@@ -193,11 +193,21 @@ def parse_prix(valeur: str) -> int | None:
 
 @bot.event
 async def on_ready():
-    guild = discord.Object(id=GUILD_ID)
-    bot.tree.copy_global_to(guild=guild)
-    await bot.tree.sync(guild=guild)
-    print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
-    
+    try:
+        guild = discord.Object(id=GUILD_ID)
+        # Clear les commandes en cache côté Discord
+        bot.tree.clear_commands(guild=guild)
+        await bot.tree.sync(guild=guild)
+        # Clear global aussi
+        bot.tree.clear_commands(guild=None)
+        await bot.tree.sync()
+        # Re-register tout proprement
+        bot.tree.copy_global_to(guild=guild)
+        await bot.tree.sync(guild=guild)
+        print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
+    except Exception as e:
+        print(f"❌ Erreur on_ready: {e}")
+
 async def item_autocomplete(interaction: discord.Interaction, current: str):
     return [
         app_commands.Choice(name=choice, value=choice)
