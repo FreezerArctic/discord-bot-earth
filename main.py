@@ -195,13 +195,7 @@ def parse_prix(valeur: str) -> int | None:
 async def on_ready():
     try:
         guild = discord.Object(id=GUILD_ID)
-        # Clear les commandes en cache côté Discord
         bot.tree.clear_commands(guild=guild)
-        await bot.tree.sync(guild=guild)
-        # Clear global aussi
-        bot.tree.clear_commands(guild=None)
-        await bot.tree.sync()
-        # Re-register tout proprement
         bot.tree.copy_global_to(guild=guild)
         await bot.tree.sync(guild=guild)
         print(f"✅ Bot prêt | Sync GUILD OK | {bot.user}")
