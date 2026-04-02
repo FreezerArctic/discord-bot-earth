@@ -74,6 +74,7 @@ ITEMS_DATA = [
     {"fr": "Générateur a Sorcières", "en": "Witch Spawner"},
     {"fr": "Générateur a Moutons", "en": "Sheep Spawner"},
     {"fr": "Générateur a Noyes", "en": "Drowned Spawner"},
+    {"fr": "Générateur a Cubes de Magma", "en": "Magma Cubes Spawner"},
     {"fr": "Pomme d'Or Enchantée", "en": "Enchanted Golden Apple"},
     {"fr": "Ender Pearl", "en": "Ender Pearl"},
     {"fr": "Débris antiques", "en": "Ancient Debris"},
